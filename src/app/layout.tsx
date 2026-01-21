@@ -14,8 +14,16 @@ export const metadata: Metadata = {
     default: "JRADIANCE STORE | Organic body care products ",
     template: "%s | JRADIANCE STORE",
   },
-
   description: "JRADIANCE is a digital market place to shop for organic body care products",
+  openGraph: {
+    title: 'JRADIANCE STORE',
+    description: 'Shop for organic body care products.',
+    url: 'https://yournamecheapdomain.com',
+    siteName: 'JRADIANCE',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  alternates: { canonical: 'https://yournamecheapdomain.com' },
 };
 
 export default function RootLayout({children,}: Readonly<{children: React.ReactNode;}>) {
