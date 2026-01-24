@@ -24,7 +24,9 @@ export function useCart() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("jradiance-cart", JSON.stringify(cart));
+    if (cart.length > 0) {
+      localStorage.setItem("jradiance-cart", JSON.stringify(cart));
+    }
   }, [cart]);
 
   const addToCart = (product: Pick<ProductRow, 'id' | 'name' | 'price'>) => {

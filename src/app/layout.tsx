@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Script from "next/script";
 
 const bodyClasses = `
   min-h-screen 
@@ -33,16 +34,22 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${bodyClasses}`}>
-        {/* Nave bar: add later */}
-        {/* <Navbar/> */}
-
+        {/* Load Paystack inline script globally */}
+        <Script 
+          src="https://js.paystack.co/v1/inline.js" 
+          strategy="beforeInteractive" 
+          async
+        /> 
+        {/* Top Header */}
+        {/* <TopHeader/> */}
+        
         {/* Main content */}
         <main>
           <div className="mx-auto max-w-6xl px-6 py-12">{children}</div>
         </main>
 
-        {/* Footer: add later */}
-        {/* <Footer/> */}
+        {/* Nave bar: add later */}
+        {/* <BottomNavbar/> */}
       </body>
     </html>
   );
