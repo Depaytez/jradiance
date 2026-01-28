@@ -1,11 +1,14 @@
 "use client";
 
 import { useCart } from "@/hooks/useCart";
-import { Trash2, ShoppingBag } from "lucide-react";
+import { Trash2, ShoppingBag, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import OrderDetailsPanel from "@/components/OrderDetailsPanel";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, totalOrder } = useCart();
+  const [showOrderPanel, setShowOrderPanel] = useState(false);
 
   if (!cart.length) {
     return (
@@ -79,6 +82,21 @@ export default function CartPage() {
           </Link>
         </div>
       </main>
+
+      <button
+  onClick={() => setShowOrderPanel(true)}
+  className="fixed bottom-24 right-6 z-40 md:bottom-8 md:right-12 bg-radiance-goldColor text-white p-4 rounded-full shadow-lg hover:bg-radiance-amberAccentColor transition"
+  aria-label="View order details"
+>
+  <AlertCircle size={24} />
+</button>
+
+<OrderDetailsPanel
+  order={null}
+  isOpen={showOrderPanel}
+  onClose={() => setShowOrderPanel(false)}
+  onConfirmDelivery={() => {}}
+ />
     </div>
   );
 }

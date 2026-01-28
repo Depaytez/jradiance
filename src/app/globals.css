@@ -3,8 +3,11 @@
 @theme {
   /* Brand Colors */
   --color-radiance-goldColor: #D4AF37;
-  --color-radiance-charcoalTextColor: #333333;
+  --color-radiance-charcoalTextColor: #1A1A1A;
   --color-radiance-amberAccentColor: #FFBF00;
+  --color-radiance-cocoaColor: #3D2B1F;
+  --color-radiance-creamBackgroundColor: #FFFDF5;
+
   
   /* You can also define your site-wide fonts here if needed */
 }
