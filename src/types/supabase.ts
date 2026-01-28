@@ -3,234 +3,448 @@ export type Json =
   | number
   | boolean
   | null
-  | { [key: string]: Json }
-  | Json[];
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-/* Enums */
-export type user_role = "chief_admin" | "shop_rep" | "developer" | "customer";
-export type order_status =
-  | "pending"
-  | "processing"
-  | "shipped"
-  | "delivered"
-  | "cancelled";
-export type finance_type = "income" | "expense";
-export type finance_source = "online" | "manual";
-
-/* Table row types */
-export interface ProfilesRow {
-  id: string; // uuid
-  email: string;
-  name: string;
-  phone: string | null;
-  role: user_role;
-  permissions: Json | null;
-  created_at: string | null; // timestamptz ISO
-  updated_at: string | null; // timestamptz ISO
-}
-
-export interface ProductsRow {
-  id: string;
-  name: string;
-  slug: string;
-  price: string; // numeric stored as string
-  vat_rate: string | null; // numeric
-  stock: number;
-  images: string[] | null;
-  description: string | null;
-  is_active: boolean | null;
-  is_deleted: boolean | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface OrdersRow {
-  id: string;
-  user_id: string;
-  status: order_status;
-  items: Json;
-  payment_ref: string | null;
-  total_amount: string;
-  address: Json | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-export interface FinanceEntriesRow {
-  id: string;
-  type: finance_type;
-  amount: string;
-  source: finance_source;
-  description: string | null;
-  order_id: string | null;
-  created_by: string | null;
-  created_at: string | null;
-}
-
-export interface AuditLogsRow {
-  id: string;
-  table_name: string;
-  operation: string;
-  record_id: string;
-  old_data: Json | null;
-  new_data: Json | null;
-  changed_by: string | null;
-  changed_at: string | null;
-}
-
-export interface ErrorLogsRow {
-  id: string;
-  message: string;
-  stack: string | null;
-  context: Json | null;
-  created_at: string | null;
-}
-
-export interface ComplaintsRow {
-  id: string;
-  order_id: string | null;
-  user_id: string | null;
-  description: string;
-  status: string | null;
-  created_at: string | null;
-}
-
-/* Insert types (what you'd supply when inserting) */
-export type ProfilesInsert = {
-  id?: string; // DB generates uuid by linking to auth.users on insert;
-  email: string;
-  name: string;
-  phone?: string | null;
-  role?: user_role;
-  permissions?: Json | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-};
-
-export type ProfilesUpdate = Partial<ProfilesRow>;
-
-export type ProductsInsert = {
-  id?: string;
-  name: string;
-  slug: string;
-  price: string;
-  vat_rate?: string | null;
-  stock?: number;
-  images?: string[] | null;
-  description?: string | null;
-  is_active?: boolean | null;
-  is_deleted?: boolean | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-};
-
-export type ProductsUpdate = Partial<ProductsRow>;
-
-export type OrdersInsert = {
-  id?: string;
-  user_id: string;
-  status?: order_status;
-  items: Json;
-  payment_ref?: string | null;
-  total_amount: string;
-  address?: Json | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-};
-
-export type OrdersUpdate = Partial<OrdersRow>;
-
-export type FinanceEntriesInsert = {
-  id?: string;
-  type: finance_type;
-  amount: string;
-  source: finance_source;
-  description?: string | null;
-  order_id?: string | null;
-  created_by?: string | null;
-  created_at?: string | null;
-};
-
-export type FinanceEntriesUpdate = Partial<FinanceEntriesRow>;
-
-export type AuditLogsInsert = {
-  id?: string;
-  table_name: string;
-  operation: string;
-  record_id: string;
-  old_data?: Json | null;
-  new_data?: Json | null;
-  changed_by?: string | null;
-  changed_at?: string | null;
-};
-export type AuditLogsUpdate = Partial<AuditLogsRow>;
-
-export type ErrorLogsInsert = {
-  id?: string;
-  message: string;
-  stack?: string | null;
-  context?: Json | null;
-  created_at?: string | null;
-};
-export type ErrorLogsUpdate = Partial<ErrorLogsRow>;
-
-export type ComplaintsInsert = {
-  id?: string;
-  order_id?: string | null;
-  user_id?: string | null;
-  description: string;
-  status?: string | null;
-  created_at?: string | null;
-};
-export type ComplaintsUpdate = Partial<ComplaintsRow>;
-
-/* Database interface for supabase-js */
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      profiles: {
-        Row: ProfilesRow;
-        Insert: ProfilesInsert;
-        Update: ProfilesUpdate;
-      };
-      products: {
-        Row: ProductsRow;
-        Insert: ProductsInsert;
-        Update: ProductsUpdate;
-      };
-      orders: {
-        Row: OrdersRow;
-        Insert: OrdersInsert;
-        Update: OrdersUpdate;
-      };
-      finance_entries: {
-        Row: FinanceEntriesRow;
-        Insert: FinanceEntriesInsert;
-        Update: FinanceEntriesUpdate;
-      };
       audit_logs: {
-        Row: AuditLogsRow;
-        Insert: AuditLogsInsert;
-        Update: AuditLogsUpdate;
-      };
-      error_logs: {
-        Row: ErrorLogsRow;
-        Insert: ErrorLogsInsert;
-        Update: ErrorLogsUpdate;
-      };
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
-        Row: ComplaintsRow;
-        Insert: ComplaintsInsert;
-        Update: ComplaintsUpdate;
-      };
-    };
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          order_id: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          order_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          order_id?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaints_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "complaints_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      error_logs: {
+        Row: {
+          context: Json | null
+          created_at: string | null
+          id: string
+          message: string
+          stack: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          message: string
+          stack?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          stack?: string | null
+        }
+        Relationships: []
+      }
+      finance_entries: {
+        Row: {
+          amount: number
+          created_at: string | null
+          created_by: string | null
+          description: string
+          id: string
+          order_id: string | null
+          source: Database["public"]["Enums"]["finance_source"]
+          type: Database["public"]["Enums"]["finance_type"]
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          id?: string
+          order_id?: string | null
+          source: Database["public"]["Enums"]["finance_source"]
+          type: Database["public"]["Enums"]["finance_type"]
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          id?: string
+          order_id?: string | null
+          source?: Database["public"]["Enums"]["finance_source"]
+          type?: Database["public"]["Enums"]["finance_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: Json | null
+          created_at: string | null
+          id: string
+          items: Json
+          payment_ref: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string | null
+          id?: string
+          items: Json
+          payment_ref?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string | null
+          id?: string
+          items?: Json
+          payment_ref?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          images: string[] | null
+          is_active: boolean | null
+          is_deleted: boolean | null
+          name: string
+          price: number
+          slug: string
+          stock: number
+          updated_at: string | null
+          vat_rate: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          name: string
+          price: number
+          slug: string
+          stock?: number
+          updated_at?: string | null
+          vat_rate?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          is_deleted?: boolean | null
+          name?: string
+          price?: number
+          slug?: string
+          stock?: number
+          updated_at?: string | null
+          vat_rate?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          permissions: Json | null
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          permissions?: Json | null
+          phone: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          permissions?: Json | null
+          phone?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
     Enums: {
-      user_role: user_role;
-      order_status: order_status;
-      finance_type: finance_type;
-      finance_source: finance_source;
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-  };
+      finance_source: "online" | "manual"
+      finance_type: "income" | "expense"
+      order_status:
+        | "pending"
+        | "processing"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
+      user_role: "chief_admin" | "shop_rep" | "developer" | "customer"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      finance_source: ["online", "manual"],
+      finance_type: ["income", "expense"],
+      order_status: [
+        "pending",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ],
+      user_role: ["chief_admin", "shop_rep", "developer", "customer"],
+    },
+  },
+} as const

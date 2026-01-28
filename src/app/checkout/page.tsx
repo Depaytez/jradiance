@@ -1,35 +1,42 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useCart } from '@/hooks/useCart';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/hooks/useCart";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, totalOrder } = useCart();
 
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
   });
 
   const [loading, setLoading] = useState(false);
 
-   useEffect(() => {
+  useEffect(() => {
     if (cart.length === 0) {
-      router.push('/');
+      router.push("/");
     }
   }, [cart, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async () => {
     if (!form.name.trim() || !form.email.trim() || !form.phone.trim()) {
-      alert('Please fill in Name, Email, and Phone.');
+      alert("Please fill in Name, Email, and Phone.");
+      return;
+    }
+
+    if (typeof window.PaystackPop === 'undefined') {
+      alert('Payment system is still loading. Please try again in a second.');
       return;
     }
 
@@ -37,39 +44,41 @@ export default function CheckoutPage() {
 
     try {
       // Validate total server-side first (security)
-      const validateRes = await fetch('/api/validate-cart-total', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const validateRes = await fetch("/api/validate-cart-total", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cart }),
       });
 
       if (!validateRes.ok) {
-        throw new Error('Cart validation failed');
+        throw new Error("Cart validation failed");
       }
 
-      const { validatedTotal } = await validateRes.json() as { validatedTotal: number };
+      const { validatedTotal } = (await validateRes.json()) as {
+        validatedTotal: number;
+      };
 
       if (Math.abs(validatedTotal - totalOrder) > 0.01) {
-        alert('Cart total mismatch. Please refresh your cart.');
-        setLoading(false)
+        alert("Cart total mismatch. Please refresh your cart.");
+        setLoading(false);
         return;
       }
 
-      // Step 2: Paystack popup (script already in layout)
+      // Paystack popup (script already in layout)
       const handler = window.PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
+        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "",
         email: form.email.trim(),
         amount: Math.round(totalOrder * 100), // kobo
-        currency: 'NGN',
+        currency: "NGN",
         ref: `jr-${Date.now()}-${Math.random().toString(36).slice(2)}`, // unique
         onClose: () => {
           setLoading(false);
         },
         onSuccess: async (response) => {
-          // Step 3: Send to server for user creation + order
-          const processRes = await fetch('/api/process-checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          // Send to server for user creation + order
+          const processRes = await fetch("/api/process-checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               cart,
               form,
@@ -79,11 +88,11 @@ export default function CheckoutPage() {
           });
 
           if (processRes.ok) {
-            localStorage.removeItem('jradiance-cart');
-            router.push('/account');
+            localStorage.removeItem("jradiance-cart");
+            router.push("/account");
           } else {
             const err = await processRes.json();
-            alert(err.error || 'Payment processed but order failed.');
+            alert(err.error || "Payment processed but order failed.");
           }
         },
       });
@@ -91,7 +100,7 @@ export default function CheckoutPage() {
       handler.openIframe();
     } catch (err) {
       console.error(err);
-      alert('An error occurred. Please try again.');
+      alert("An error occurred. Please try again.");
       setLoading(false);
     }
     //  finally {
@@ -115,9 +124,14 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-medium mb-4 text-radiance-cocoaColor">Order Summary</h2>
+          <h2 className="text-xl font-medium mb-4 text-radiance-cocoaColor">
+            Order Summary
+          </h2>
           {cart.map((item) => (
-            <div key={item.productId} className="flex justify-between py-3 border-b last:border-0">
+            <div
+              key={item.productId}
+              className="flex justify-between py-3 border-b last:border-0"
+            >
               <span className="font-medium">
                 {item.name} × {item.quantity}
               </span>
@@ -175,12 +189,14 @@ export default function CheckoutPage() {
             disabled={loading}
             className="mt-8 w-full py-4 bg-radiance-goldColor text-white font-medium rounded-lg hover:bg-radiance-amberAccentColor transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {loading ? 'Processing...' : `Pay ₦${totalOrder.toFixed(2)} to Checkout`}
+            {loading
+              ? "Processing..."
+              : `Pay ₦${totalOrder.toFixed(2)} to Checkout`}
           </button>
 
           <p className="mt-4 text-center text-sm text-gray-600">
-            You can track your order status in your cart page after payment.
-            We want to see you purchase from us again!
+            You can track your order status in your cart page after payment. We
+            want to see you purchase from us again!
           </p>
         </section>
       </main>
