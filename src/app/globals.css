@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@theme {
+  /* Brand Colors */
+  --color-radiance-goldColor: #D4AF37;
+  --color-radiance-charcoalTextColor: #333333;
+  --color-radiance-amberAccentColor: #FFBF00;
+  
+  /* You can also define your site-wide fonts here if needed */
+}
+
 :root {
   --background: #FFFDF5;          
   --foreground: #1A1A1A;          

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Script from "next/script";
+import TopBar from '@/components/TopBar'; // ADDED
+import BottomNavBar from '@/components/BottomNavBar';
 
 const bodyClasses = `
   min-h-screen 
@@ -8,6 +10,7 @@ const bodyClasses = `
   text-radiance-charcoalTextColor 
   font-sans
   antialiased
+  pt-20 
 `;
 
 export const metadata: Metadata = {
@@ -40,16 +43,16 @@ export default function RootLayout({
           strategy="beforeInteractive" 
           async
         /> 
-        {/* Top Header */}
-        {/* <TopHeader/> */}
+        {/* Top Bar */}
+        <TopBar/>
         
         {/* Main content */}
-        <main>
+        <main className="pb-20 md:pb-0">
           <div className="mx-auto max-w-6xl px-6 py-12">{children}</div>
         </main>
 
-        {/* Nave bar: add later */}
-        {/* <BottomNavbar/> */}
+        {/* Nave bar */}
+        <BottomNavBar/>
       </body>
     </html>
   );

@@ -9,7 +9,7 @@ This document outlines identified improvements organized by priority level:
 
 ---
 
-## MUST DO (Critical Security & Stability Issues)
+## 🔴 MUST DO (Critical Security & Stability Issues)
 
 ### 1. **Input Validation on API Routes**
 **Location:** `src/app/api/process-checkout/route.ts`, `src/app/api/validate-cart-total/route.ts`
@@ -133,7 +133,7 @@ if (!targetUser) {
 
 ---
 
-### 4. **Payment Amount Mismatch Attack**
+### 5. **Payment Amount Mismatch Attack**
 **Location:** `src/app/api/process-checkout/route.ts`
 
 **Issue:** User sends `total` value from frontend. No server-side validation that it matches cart items.
@@ -160,7 +160,43 @@ if (Math.abs(validatedTotal - total) > 0.01) { // Allow tiny floating-point diff
 
 ## SHOULD DO (Important Improvements)
 
-### 5. **Rate Limiting on Checkout Endpoint**
+### 6. **Missing Error Handling in TopBar Profile Fetch**
+**Location:** `src/components/TopBar.tsx` lines 50-58
+
+**Issue:** Profile query errors are silently ignored - component stays in loading state indefinitely if fetch fails.
+
+**Risk:**
+- If profile fetch fails, user sees loading skeleton forever
+- No error message or recovery option
+- Poor user experience and difficult debugging
+
+**Recommendation:**
+```typescript
+// In TopBar.tsx useEffect:
+if (user) {
+  supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+    .then(({ data, error }) => {
+      // Handle error case instead of ignoring it
+      if (error) {
+        console.error('Failed to fetch profile:', error.message);
+        setProfile(null); // Allow UI to work with minimal info
+      } else {
+        setProfile(data);
+      }
+      setLoading(false); // Always set loading to false
+    });
+}
+```
+
+**Priority:** HIGH - User experience blocker
+
+---
+
+### 7. **Rate Limiting on Checkout Endpoint**
 **Location:** `src/app/api/process-checkout/route.ts`
 
 **Issue:** No rate limiting on payment processing - vulnerable to abuse.
@@ -198,7 +234,7 @@ export async function POST(req: Request) {
 
 ---
 
-### 6. **Explicit Error Messages Leak Information**
+### 8. **Explicit Error Messages Leak Information**
 **Location:** Multiple API routes
 
 **Issue:** Returning database errors directly to client could leak schema/security info.
@@ -224,7 +260,7 @@ return NextResponse.json(
 
 ---
 
-### 7. **Cart Persistence Security**
+### 9. **Cart Persistence Security**
 **Location:** `src/hooks/useCart.ts`
 
 **Issue:** Cart data stored unencrypted in localStorage is visible to any XSS attack.
@@ -261,7 +297,7 @@ useEffect(() => {
 
 ---
 
-### 8. **Missing CSRF Protection on POST Routes**
+### 10. **Missing CSRF Protection on POST Routes**
 **Location:** All API routes in `src/app/api/`
 
 **Issue:** No CSRF token validation on state-changing operations.
@@ -288,7 +324,7 @@ if (origin && !origin.includes(host!)) {
 
 ---
 
-### 9. **Unhandled Promise Rejections**
+### 11. **Unhandled Promise Rejections**
 **Location:** `src/app/api/process-checkout/route.ts` line 60
 
 **Issue:** `resetPasswordForEmail` is awaited but errors are not caught.
@@ -315,9 +351,47 @@ try {
 
 ---
 
-## COULD DO (Nice-to-Have Improvements)
+### 12. **Stale Cart Badge in BottomNavBar**
+**Location:** `src/components/BottomNavBar.tsx` lines 41-48
 
-### 10. **Optimistic Cart Updates**
+**Issue:** Cart badge shows correct count, but if user navigates away and returns, badge may not update immediately if cart state changes.
+
+**Risk:**
+- Badge could be out-of-sync with actual cart contents for a brief moment
+- Users might see incorrect item count
+
+**Recommendation:**
+Consider adding a visual pulse animation when cart updates or consider using optimistic updates:
+```typescript
+// Option 1: Add animation class when cart changes
+const [showPulse, setShowPulse] = useState(false);
+
+useEffect(() => {
+  setShowPulse(true);
+  const timer = setTimeout(() => setShowPulse(false), 600);
+  return () => clearTimeout(timer);
+}, [cart.length]);
+
+// In JSX:
+{item.badge !== undefined && item.badge > 0 && (
+  <span className={`
+    absolute -top-1 -right-1 
+    bg-radiance-goldColor text-white text-xs font-bold 
+    rounded-full w-5 h-5 flex items-center justify-center
+    ${showPulse ? 'animate-pulse' : ''}
+  `}>
+    {item.badge}
+  </span>
+)}
+```
+
+**Priority:** COULD - Nice-to-have UX enhancement
+
+---
+
+## 🟢 COULD DO (Nice-to-Have Improvements)
+
+### 13. **Optimistic Cart Updates**
 **Location:** `src/hooks/useCart.ts` and `src/components/ProductCard.tsx`
 
 **Suggestion:** Add visual feedback when adding items (toast notification).
@@ -341,7 +415,7 @@ const handleAddToCart = (product: ProductRow) => {
 
 ---
 
-### 11. **Memoize ProductCard Component**
+### 14. **Memoize ProductCard Component**
 **Location:** `src/components/ProductCard.tsx`
 
 **Suggestion:** Prevent re-renders when parent list updates:
@@ -353,14 +427,14 @@ export const ProductCard = React.memo(function ProductCard({ product }: ProductC
 
 ---
 
-### 12. **Add Loading States on Checkout**
+### 15. **Add Loading States on Checkout**
 **Location:** Checkout page component
 
 **Suggestion:** Show loading indicator while processing payment and creating order. Prevent double-submission.
 
 ---
 
-### 13. **Type Safety for localStorage**
+### 16. **Type Safety for localStorage**
 **Location:** `src/hooks/useCart.ts`
 
 **Suggestion:** Create a type-safe storage utility:
@@ -393,24 +467,24 @@ const useLocalStorage = <T,>(key: string, initialValue: T) => {
 
 ## WON'T DO (Intentional Decisions)
 
-### 14. **Don't Store Sensitive Data in localStorage**
+### 17. **Don't Store Sensitive Data in localStorage**
 **Decision:** Correct - The app doesn't store passwords or payment details in localStorage.
 
 ---
 
-### 15. **Don't Use JWT from Cookies Without Validation**
+### 17. **Don't Use JWT from Cookies Without Validation**
 **Decision:** Correct - Supabase handles this automatically. ✅
 
 ---
 
-### 16. **Reconsider: Single-Page File for All Supabase Clients**
+### 19. **Reconsider: Single-Page File for All Supabase Clients**
 **Decision:** Current approach of separate files (client.ts, server.ts, admin.ts) is GOOD. 
 
 **Reasoning:** Separation of concerns makes it clear which client to use and prevents accidental exposure of service role keys. Keep as is. ✅
 
 ---
 
-### 17. **Don't Remove TypeScript Strict Mode**
+### 20. **Don't Remove TypeScript Strict Mode**
 **Decision:** Recommended to KEEP strict mode enabled.
 
 **tsconfig.json should have:**
@@ -436,7 +510,9 @@ const useLocalStorage = <T,>(key: string, initialValue: T) => {
 | Env validation | MUST | Stability | High | 1 hour |
 | Email lookup optimization | MUST | Performance | Medium | 30 min |
 | Payment mismatch check | MUST | Security | Critical | 1 hour |
+| TopBar profile error handling | MUST | UX/Stability | Medium | 1 hour |
 | Rate limiting | SHOULD | Security | High | 2 hours |
+| BottomNavBar badge sync | SHOULD | UX | Low | 1 hour |
 | Error message leaking | SHOULD | Security | Medium | 1 hour |
 | Cart validation | SHOULD | Security | Medium | 1 hour |
 | CSRF protection | SHOULD | Security | Medium | 1 hour |
